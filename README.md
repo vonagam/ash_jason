@@ -13,7 +13,7 @@ Add to the deps, get deps (`mix deps.get`), compile them (`mix deps.compile`).
 ```elixir
 def deps do
   [
-    {:ash_jason, "~> 0.1"},
+    {:ash_jason, "~> 0.2"},
   ]
 end
 ```
@@ -50,8 +50,8 @@ end
 
 Fields to pick from a record and include in json.
 Feilds with values of `nil`/`Ash.NotLoaded`/`Ash.NotSelected` are omitted.
-By default includes all non-private fields (attributes/relationships/aggregates/calculations).
-Specifying `fields` overwrites default, `pick`/`omit` can be used instead to simply modify it.
+By default includes all public non-sensitive fields (attributes/relationships/aggregates/calculations).
+Specifying `fields` overwrites that default, `pick`/`omit` can be used instead to simply modify it.
 
 ```elixir
 jason do
@@ -62,7 +62,7 @@ end
 #### pick
 
 Keys to pick from a record in addition to `fields`.
-Can be used to whitelist some private attributes or custom non-field properties.
+Can be used to whitelist some private/sensitive attributes or custom non-field properties.
 
 ```elixir
 jason do

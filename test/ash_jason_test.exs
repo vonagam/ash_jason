@@ -11,6 +11,7 @@ defmodule AshJason.Test.Macros do
           uuid_primary_key :id, writable?: true
           attribute :x, :integer
           attribute :y, :integer, private?: true
+          attribute :z, :integer, sensitive?: true
         end
 
         actions do
@@ -56,23 +57,27 @@ defmodule AshJason.Test do
     end
 
     test "omits private fields" do
-      assert encode!(%Default{id: @id, x: 1, y: 1}) == "{\"id\":\"#{@id}\",\"x\":1}"
+      assert encode!(%Default{id: @id, y: 1}) == "{\"id\":\"#{@id}\"}"
+    end
+
+    test "omits sensitive fields" do
+      assert encode!(%Default{id: @id, z: 1}) == "{\"id\":\"#{@id}\"}"
     end
 
     test "omits unknown fields" do
-      assert encode!(%Default{id: @id, x: 1} |> Map.put(:a, 1)) == "{\"id\":\"#{@id}\",\"x\":1}"
+      assert encode!(%Default{id: @id} |> Map.put(:a, 1)) == "{\"id\":\"#{@id}\"}"
     end
   end
 
   describe "`fields` option" do
     defresource WithFields do
       jason do
-        fields [:y]
+        fields [:y, :z]
       end
     end
 
     test "replaces default pick" do
-      assert encode!(%WithFields{id: @id, x: 1, y: 1}) == "{\"y\":1}"
+      assert encode!(%WithFields{id: @id, x: 1, y: 1, z: 1}) == "{\"y\":1,\"z\":1}"
     end
   end
 
@@ -84,7 +89,7 @@ defmodule AshJason.Test do
     end
 
     test "modifies default pick" do
-      assert encode!(%WithPick{id: @id, x: 1, y: 1}) == "{\"id\":\"#{@id}\",\"y\":1,\"x\":1}"
+      assert encode!(%WithPick{id: @id, x: 1, y: 1, z: 1}) == "{\"id\":\"#{@id}\",\"y\":1,\"x\":1}"
     end
   end
 

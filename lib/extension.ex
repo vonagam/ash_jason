@@ -5,7 +5,7 @@ defmodule AshJason.Extension do
     schema: [
       fields: [
         type: {:list, :atom},
-        doc: "Fields to pick from a record and include in json.",
+        doc: "Fields to pick from a record and include in json (default: all public non-sensitive fields).",
       ],
       pick: [
         type: {:list, :atom},
