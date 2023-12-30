@@ -13,7 +13,7 @@ Add to the deps, get deps (`mix deps.get`), compile them (`mix deps.compile`).
 ```elixir
 def deps do
   [
-    {:ash_jason, "~> 0.2"},
+    {:ash_jason, "~> 0.3.0"},
   ]
 end
 ```
@@ -29,9 +29,15 @@ defmodule Example.Resource do
 end
 ```
 
-By default encodes all non-private fields (attributes/relationships/aggregates/calculations) with loaded non-nil values.
-
 ### Configuration
+
+The process to get data for json happens with three steps: 
+- Pick keys from a record.
+- Merge some fixed values.
+- Customize a result.
+
+By default only first step happens and it picks all non-private fields (attributes, relationships, aggregates,
+calculations) with loaded non-nil values.
 
 For configuration there is an optional `jason` dsl section:
 
@@ -46,38 +52,35 @@ defmodule Example.Resource do
 end
 ```
 
-#### fields
-
-Fields to pick from a record and include in json.
-Feilds with values of `nil`/`Ash.NotLoaded`/`Ash.NotSelected` are omitted.
-By default includes all public non-sensitive fields (attributes/relationships/aggregates/calculations).
-Specifying `fields` overwrites that default, `pick`/`omit` can be used instead to simply modify it.
-
-```elixir
-jason do
-  fields [:only_some_field]
-end
-```
-
 #### pick
 
-Keys to pick from a record in addition to `fields`.
-Can be used to whitelist some private/sensitive attributes or custom non-field properties.
+Keys to pick from a record and include in json.
+Values of `nil`/`Ash.NotLoaded`/`Ash.NotSelected` are omitted.
+
+Can be specified as a fixed explicit list of keys or a map with a configuration of default behaviour.
+
+Map can have such options as:
+- `private?` - Whenever to pick private fields.
+- `sensitive?` - Whenever to pick sensitive fields.
+- `include` - Keys to pick. In addition to fields.
+- `exclude` - Keys not to pick. 
 
 ```elixir
 jason do
-  pick [:additional_key]
-end
-```
+  # Pick only those listed keys
+  pick [:only_some_field]
 
-#### omit
+  # Pick non-sensitive fields
+  pick %{private?: true}
 
-Keys to omit from `fields`/`pick`.
-Can be used to blacklist some public attributes that get included by default.
+  # Pick non-private fields
+  pick %{sensitive?: true}
 
-```elixir
-jason do
-  omit [:privatish_key]
+  # Pick all fields
+  pick %{private?: true, sensitive?: true}
+
+  # Pick usual but include and exclude some specific keys
+  pick %{include: [:ok_private_field], exclude: [:irrelevant_public_field]}
 end
 ```
 

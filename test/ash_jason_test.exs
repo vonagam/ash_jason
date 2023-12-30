@@ -12,10 +12,7 @@ defmodule AshJason.Test.Macros do
           attribute :x, :integer
           attribute :y, :integer, private?: true
           attribute :z, :integer, sensitive?: true
-        end
-
-        actions do
-          defaults [:read, :create]
+          attribute :w, :integer, private?: true, sensitive?: true
         end
 
         unquote(block)
@@ -31,20 +28,11 @@ defmodule AshJason.Test do
 
   @id "8a94dbb1-9b64-4884-886e-710f87e56487"
 
-  defmodule Api do
-    use Ash.Api,
-      validate_config_inclusion?: false
-
-    resources do
-      allow_unregistered? true
-    end
-  end
-
   describe "by default" do
     defresource Default do
     end
 
-    test "encodes public fields" do
+    test "encodes fields" do
       assert encode!(%Default{id: @id, x: 1}) == "{\"id\":\"#{@id}\",\"x\":1}"
     end
 
@@ -54,6 +42,10 @@ defmodule AshJason.Test do
 
     test "omits not loaded fields" do
       assert encode!(%Default{id: @id, x: %Ash.NotLoaded{}}) == "{\"id\":\"#{@id}\"}"
+    end
+
+    test "omits not selected fields" do
+      assert encode!(%Default{id: @id, x: %Ash.NotSelected{}}) == "{\"id\":\"#{@id}\"}"
     end
 
     test "omits private fields" do
@@ -69,39 +61,66 @@ defmodule AshJason.Test do
     end
   end
 
-  describe "`fields` option" do
-    defresource WithFields do
-      jason do
-        fields [:y, :z]
-      end
-    end
-
-    test "replaces default pick" do
-      assert encode!(%WithFields{id: @id, x: 1, y: 1, z: 1}) == "{\"y\":1,\"z\":1}"
-    end
-  end
-
   describe "`pick` option" do
-    defresource WithPick do
+    defresource WithPickList do
       jason do
-        pick [:y]
+        pick [:y, :z]
       end
     end
 
-    test "modifies default pick" do
-      assert encode!(%WithPick{id: @id, x: 1, y: 1, z: 1}) == "{\"id\":\"#{@id}\",\"y\":1,\"x\":1}"
+    test "replaces default pick if a list is provided" do
+      assert encode!(%WithPickList{id: @id, x: 1, y: 1, z: 1, w: 1}) == "{\"y\":1,\"z\":1}"
     end
-  end
 
-  describe "`omit` option" do
-    defresource WithOmit do
+    defresource WithPickPrivate do
       jason do
-        omit [:x]
+        pick %{private?: true}
       end
     end
 
-    test "modifies default pick" do
-      assert encode!(%WithOmit{id: @id, x: 1, y: 1}) == "{\"id\":\"#{@id}\"}"
+    test "adds private fields if `private?` is true" do
+      assert encode!(%WithPickPrivate{id: @id, x: 1, y: 1, z: 1, w: 1}) == "{\"id\":\"#{@id}\",\"y\":1,\"x\":1}"
+    end
+
+    defresource WithPickSensitive do
+      jason do
+        pick %{sensitive?: true}
+      end
+    end
+
+    test "adds sensitive fields if `sensitive?` is true" do
+      assert encode!(%WithPickSensitive{id: @id, x: 1, y: 1, z: 1, w: 1}) == "{\"id\":\"#{@id}\",\"x\":1,\"z\":1}"
+    end
+
+    defresource WithPickAll do
+      jason do
+        pick %{private?: true, sensitive?: true}
+      end
+    end
+
+    test "adds all fields if `private?` and `sensitive?` are true" do
+      assert encode!(%WithPickAll{id: @id, x: 1, y: 1, z: 1, w: 1}) ==
+               "{\"id\":\"#{@id}\",\"w\":1,\"y\":1,\"x\":1,\"z\":1}"
+    end
+
+    defresource WithPickInclude do
+      jason do
+        pick %{include: [:y]}
+      end
+    end
+
+    test "adds fields specified in `include`" do
+      assert encode!(%WithPickInclude{id: @id, x: 1, y: 1, z: 1, w: 1}) == "{\"id\":\"#{@id}\",\"y\":1,\"x\":1}"
+    end
+
+    defresource WithPickExclude do
+      jason do
+        pick %{exclude: [:x]}
+      end
+    end
+
+    test "removes fields specified in `exclude`" do
+      assert encode!(%WithPickExclude{id: @id, x: 1, y: 1, z: 1, w: 1}) == "{\"id\":\"#{@id}\"}"
     end
   end
 

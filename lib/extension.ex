@@ -3,17 +3,34 @@ defmodule AshJason.Extension do
     name: :jason,
     describe: "Configuration for Jason encoder implementation",
     schema: [
-      fields: [
-        type: {:list, :atom},
-        doc: "Fields to pick from a record and include in json (default: all public non-sensitive fields).",
-      ],
       pick: [
-        type: {:list, :atom},
-        doc: "Keys to pick from a record (in addition to `fields`).",
-      ],
-      omit: [
-        type: {:list, :atom},
-        doc: "Keys to omit from a record (despite `fields`/`pick`).",
+        type:
+          {:or,
+           [
+             {:list, :atom},
+             {:map,
+              [
+                private?: [
+                  type: :boolean,
+                  default: false,
+                  doc: "Whenever to pick private fields.",
+                ],
+                sensitive?: [
+                  type: :boolean,
+                  default: false,
+                  doc: "Whenever to pick sensitive fields.",
+                ],
+                include: [
+                  type: {:list, :atom},
+                  doc: "Keys to pick. In addition to fields.",
+                ],
+                exclude: [
+                  type: {:list, :atom},
+                  doc: "Keys not to pick.",
+                ],
+              ]},
+           ]},
+        doc: "Keys to pick from a record into json. Either an explicit names list or a behaviour configuration map.",
       ],
       merge: [
         type: :map,
@@ -21,7 +38,7 @@ defmodule AshJason.Extension do
       ],
       customize: [
         type: {:fun, [:map, :map], :map},
-        doc: "A function to customize json.",
+        doc: "A function to customize json. Receives a current result and a resource record.",
       ],
     ],
   }

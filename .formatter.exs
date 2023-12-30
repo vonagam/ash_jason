@@ -1,7 +1,5 @@
 spark_locals_without_parens = [
-  fields: 1,
   pick: 1,
-  omit: 1,
   merge: 1,
   customize: 1,
 ]

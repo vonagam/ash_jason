@@ -2,16 +2,27 @@ defmodule AshJason.Transformer do
   use Spark.Dsl.Transformer
 
   def transform(dsl) do
-    keys = dsl |> Ash.Resource.Info.fields() |> Enum.reject(&(&1.private? || &1.sensitive?)) |> Enum.map(& &1.name)
-    keys = Spark.Dsl.Transformer.get_option(dsl, [:jason], :fields, keys)
-    keys = keys ++ Spark.Dsl.Transformer.get_option(dsl, [:jason], :pick, [])
-    keys = keys -- Spark.Dsl.Transformer.get_option(dsl, [:jason], :omit, [])
+    pick =
+      case Spark.Dsl.Transformer.get_option(dsl, [:jason], :pick, %{}) do
+        keys when is_list(keys) ->
+          keys
+
+        options when is_map(options) ->
+          fields = dsl |> Ash.Resource.Info.fields()
+          fields = if Map.get(options, :private?), do: fields, else: fields |> Enum.reject(& &1.private?)
+          fields = if Map.get(options, :sensitive?), do: fields, else: fields |> Enum.reject(& &1.sensitive?)
+          keys = fields |> Enum.map(& &1.name)
+          keys = keys ++ Map.get(options, :include, [])
+          keys = keys |> Enum.uniq()
+          keys = keys -- Map.get(options, :exclude, [])
+          keys
+      end
 
     merge = Spark.Dsl.Transformer.get_option(dsl, [:jason], :merge)
     customize = Spark.Dsl.Transformer.get_option(dsl, [:jason], :customize)
 
     defimpl Jason.Encoder, for: dsl.persist.module do
-      @keys keys
+      @pick pick
       @merge merge
       @customize customize
 
@@ -19,7 +30,7 @@ defmodule AshJason.Transformer do
         result = %{}
 
         result =
-          for key <- @keys, reduce: result do result ->
+          for key <- @pick, reduce: result do result ->
             case Map.get(record, key) do
               nil -> result
               %Ash.NotLoaded{} -> result
