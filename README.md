@@ -13,7 +13,7 @@ Add to the deps, get deps (`mix deps.get`), compile them (`mix deps.compile`).
 ```elixir
 def deps do
   [
-    {:ash_jason, "~> 0.3.0"},
+    {:ash_jason, "~> 0.3.1"},
   ]
 end
 ```

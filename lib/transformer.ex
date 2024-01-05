@@ -10,7 +10,7 @@ defmodule AshJason.Transformer do
         options when is_map(options) ->
           fields = dsl |> Ash.Resource.Info.fields()
           fields = if Map.get(options, :private?), do: fields, else: fields |> Enum.reject(& &1.private?)
-          fields = if Map.get(options, :sensitive?), do: fields, else: fields |> Enum.reject(& &1.sensitive?)
+          fields = if Map.get(options, :sensitive?), do: fields, else: fields |> Enum.reject(&is_sensitive_field/1)
           keys = fields |> Enum.map(& &1.name)
           keys = keys ++ Map.get(options, :include, [])
           keys = keys |> Enum.uniq()
@@ -48,4 +48,7 @@ defmodule AshJason.Transformer do
 
     :ok
   end
+
+  defp is_sensitive_field(%Ash.Resource.Attribute{sensitive?: true}), do: true
+  defp is_sensitive_field(_), do: false
 end
