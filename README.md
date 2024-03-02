@@ -25,7 +25,7 @@ Add `AshJason.Extension` to `extensions` list in `use Ash.Resource`:
 ```elixir
 defmodule Example.Resource do
   use Ash.Resource,
-    extensions: [Ash.ULID.Extension]
+    extensions: [AshJason.Extension]
 end
 ```
 
@@ -44,7 +44,7 @@ For configuration there is an optional `jason` dsl section:
 ```elixir
 defmodule Example.Resource do
   use Ash.Resource,
-    extensions: [Ash.ULID.Extension]
+    extensions: [AshJason.Extension]
 
   jason do
     # options
