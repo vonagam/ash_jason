@@ -55,7 +55,7 @@ end
 #### pick
 
 Keys to pick from a record and include in json.
-Values of `nil`/`Ash.NotLoaded`/`Ash.NotSelected` are omitted.
+Values of `nil`/`Ash.NotLoaded` are omitted.
 
 Can be specified as a fixed explicit list of keys or a map with a configuration of default behaviour.
 

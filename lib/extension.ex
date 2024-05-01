@@ -37,7 +37,7 @@ defmodule AshJason.Extension do
         doc: "A map to merge into json.",
       ],
       customize: [
-        type: {:fun, [:map, :map], :map},
+        type: {:fun, 2},
         doc: "A function to customize json. Receives a current result and a resource record.",
       ],
     ],
