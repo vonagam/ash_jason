@@ -9,7 +9,7 @@ defmodule AshJason.Transformer do
 
         options when is_map(options) ->
           fields = dsl |> Ash.Resource.Info.fields()
-          fields = if Map.get(options, :private?), do: fields, else: fields |> Enum.reject(& not &1.public?)
+          fields = if Map.get(options, :private?), do: fields, else: fields |> Enum.reject(&(not &1.public?))
           fields = if Map.get(options, :sensitive?), do: fields, else: fields |> Enum.reject(&is_sensitive_field/1)
           keys = fields |> Enum.map(& &1.name)
           keys = keys ++ Map.get(options, :include, [])
