@@ -18,8 +18,8 @@ defmodule AshJason.Transformer do
           keys
       end
 
-    merge = Spark.Dsl.Transformer.get_option(dsl, [:jason], :merge)
-    customize = Spark.Dsl.Transformer.get_option(dsl, [:jason], :customize)
+    merge = Spark.Dsl.Transformer.get_option(dsl, [:jason], :merge, %{})
+    customize = Spark.Dsl.Transformer.get_option(dsl, [:jason], :customize, &AshJason.Transformer.default_customize/2)
 
     defimpl Jason.Encoder, for: dsl.persist.module do
       @pick pick
@@ -38,14 +38,21 @@ defmodule AshJason.Transformer do
             end
           end
 
-        result = if merge = @merge, do: Map.merge(result, merge), else: result
-        result = if customize = @customize, do: customize.(result, record), else: result
+        merge = @merge
+        customize = @customize
+
+        result = Map.merge(result, merge)
+        result = customize.(result, record)
 
         Jason.Encode.map(result, opts)
       end
     end
 
     :ok
+  end
+
+  def default_customize(result, _record) do
+    result
   end
 
   defp is_sensitive_field(%Ash.Resource.Attribute{sensitive?: true}), do: true
