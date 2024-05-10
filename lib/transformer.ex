@@ -1,4 +1,6 @@
 defmodule AshJason.Transformer do
+  @moduledoc false
+
   use Spark.Dsl.Transformer
 
   def transform(dsl) do
@@ -9,8 +11,8 @@ defmodule AshJason.Transformer do
 
         options when is_map(options) ->
           fields = dsl |> Ash.Resource.Info.fields()
-          fields = if Map.get(options, :private?), do: fields, else: fields |> Enum.reject(&(not &1.public?))
-          fields = if Map.get(options, :sensitive?), do: fields, else: fields |> Enum.reject(&is_sensitive_field/1)
+          fields = if Map.get(options, :private?), do: fields, else: fields |> Enum.filter(& &1.public?)
+          fields = if Map.get(options, :sensitive?), do: fields, else: fields |> Enum.reject(&Map.get(&1, :sensitive?))
           keys = fields |> Enum.map(& &1.name)
           keys = keys ++ Map.get(options, :include, [])
           keys = keys |> Enum.uniq()
@@ -38,11 +40,8 @@ defmodule AshJason.Transformer do
             end
           end
 
-        merge = @merge
-        customize = @customize
-
-        result = Map.merge(result, merge)
-        result = customize.(result, record)
+        result = Map.merge(result, @merge)
+        result = @customize.(result, record)
 
         Jason.Encode.map(result, opts)
       end
@@ -51,10 +50,5 @@ defmodule AshJason.Transformer do
     :ok
   end
 
-  def default_customize(result, _record) do
-    result
-  end
-
-  defp is_sensitive_field(%Ash.Resource.Attribute{sensitive?: true}), do: true
-  defp is_sensitive_field(_), do: false
+  def default_customize(result, _record), do: result
 end

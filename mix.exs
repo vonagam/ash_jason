@@ -2,7 +2,7 @@ defmodule AshJason.MixProject do
   use Mix.Project
 
   @name :ash_jason
-  @version "0.3.1"
+  @version "1.0.0"
   @description "Ash resource extension for implementing Jason protocol"
   @github_url "https://github.com/vonagam/ash_jason"
 
@@ -36,9 +36,10 @@ defmodule AshJason.MixProject do
 
   defp deps() do
     [
-      {:ash, ">= 3.0.0-rc.0"},
+      {:ash, "~> 3.0"},
+      {:spark, ">= 2.1.21 and < 3.0.0"},
       {:jason, "~> 1.4"},
-      {:ex_doc, "~> 0.31", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.32", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:freedom_formatter, "~> 2.1", only: [:dev, :test], runtime: false},
     ]
@@ -53,7 +54,7 @@ defmodule AshJason.MixProject do
       extras: [
         "README.md": [title: "Guide"],
         "LICENSE.md": [title: "License"],
-        "documentation/dsls/DSL:-AshJason.Extension.md": [title: "DSL: AshJason.Extension"],
+        "documentation/dsls/DSL:-AshJason.Resource.md": [title: "DSL: AshJason.Resource"],
       ],
     ]
   end
@@ -61,9 +62,9 @@ defmodule AshJason.MixProject do
   defp aliases() do
     [
       docs: ["spark.cheat_sheets", "docs", "spark.replace_doc_links", "spark.cheat_sheets_in_search"],
-      "spark.cheat_sheets": "spark.cheat_sheets --extensions AshJason.Extension",
-      "spark.cheat_sheets_in_search": "spark.cheat_sheets_in_search --extensions AshJason.Extension",
-      "spark.formatter": ["spark.formatter --extensions AshJason.Extension", "format .formatter.exs"],
+      "spark.cheat_sheets": "spark.cheat_sheets --extensions AshJason.Resource",
+      "spark.cheat_sheets_in_search": "spark.cheat_sheets_in_search --extensions AshJason.Resource",
+      "spark.formatter": ["spark.formatter --extensions AshJason.Resource", "format .formatter.exs"],
     ]
   end
 end

@@ -1,4 +1,8 @@
-defmodule AshJason.Extension do
+defmodule AshJason.Resource do
+  @moduledoc """
+  Ash resource extension for implementing `Jason.Encoder` protocol.
+  """
+
   @jason %Spark.Dsl.Section{
     name: :jason,
     describe: "Configuration for Jason encoder implementation",
@@ -37,7 +41,7 @@ defmodule AshJason.Extension do
         doc: "A map to merge into json.",
       ],
       customize: [
-        type: {:fun, 2},
+        type: {:fun, [:map, :map], :map},
         doc: "A function to customize json. Receives a current result and a resource record.",
       ],
     ],

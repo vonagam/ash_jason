@@ -6,7 +6,7 @@ defmodule AshJason.Test.Macros do
           domain: nil,
           validate_domain_inclusion?: false,
           data_layer: Ash.DataLayer.Ets,
-          extensions: [AshJason.Extension]
+          extensions: [AshJason.Resource]
 
         attributes do
           uuid_primary_key :id, writable?: true

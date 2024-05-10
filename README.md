@@ -4,7 +4,7 @@
 [![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen)](https://hexdocs.pm/ash_jason/)
 [![License](https://img.shields.io/hexpm/l/ash_jason)](https://github.com/vonagam/ash_jason/blob/master/LICENSE.md)
 
-Ash resource extension for implementing Jason.Encoder protocol.
+Ash resource extension for implementing `Jason.Encoder` protocol.
 
 ## Installation
 
@@ -13,19 +13,19 @@ Add to the deps, get deps (`mix deps.get`), compile them (`mix deps.compile`).
 ```elixir
 def deps do
   [
-    {:ash_jason, "~> 0.3.1"},
+    {:ash_jason, "~> 1.0.0"},
   ]
 end
 ```
 
 ## Usage
 
-Add `AshJason.Extension` to `extensions` list in `use Ash.Resource`:
+Add `AshJason.Resource` to `extensions` list within `use Ash.Resource` options:
 
 ```elixir
 defmodule Example.Resource do
   use Ash.Resource,
-    extensions: [AshJason.Extension]
+    extensions: [AshJason.Resource]
 end
 ```
 
@@ -44,7 +44,7 @@ For configuration there is an optional `jason` dsl section:
 ```elixir
 defmodule Example.Resource do
   use Ash.Resource,
-    extensions: [AshJason.Extension]
+    extensions: [AshJason.Resource]
 
   jason do
     # options
