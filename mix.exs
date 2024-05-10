@@ -36,7 +36,7 @@ defmodule AshJason.MixProject do
 
   defp deps() do
     [
-      {:ash, ">= 2.17.13 and < 3.0.0"},
+      {:ash, ">= 3.0.0-rc.0"},
       {:jason, "~> 1.4"},
       {:ex_doc, "~> 0.31", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},

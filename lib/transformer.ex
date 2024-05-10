@@ -9,7 +9,7 @@ defmodule AshJason.Transformer do
 
         options when is_map(options) ->
           fields = dsl |> Ash.Resource.Info.fields()
-          fields = if Map.get(options, :private?), do: fields, else: fields |> Enum.reject(& &1.private?)
+          fields = if Map.get(options, :private?), do: fields, else: fields |> Enum.reject(&(not &1.public?))
           fields = if Map.get(options, :sensitive?), do: fields, else: fields |> Enum.reject(&is_sensitive_field/1)
           keys = fields |> Enum.map(& &1.name)
           keys = keys ++ Map.get(options, :include, [])
@@ -18,8 +18,8 @@ defmodule AshJason.Transformer do
           keys
       end
 
-    merge = Spark.Dsl.Transformer.get_option(dsl, [:jason], :merge)
-    customize = Spark.Dsl.Transformer.get_option(dsl, [:jason], :customize)
+    merge = Spark.Dsl.Transformer.get_option(dsl, [:jason], :merge, %{})
+    customize = Spark.Dsl.Transformer.get_option(dsl, [:jason], :customize, &AshJason.Transformer.default_customize/2)
 
     defimpl Jason.Encoder, for: dsl.persist.module do
       @pick pick
@@ -34,19 +34,25 @@ defmodule AshJason.Transformer do
             case Map.get(record, key) do
               nil -> result
               %Ash.NotLoaded{} -> result
-              %Ash.NotSelected{} -> result
               value -> Map.put(result, key, value)
             end
           end
 
-        result = if merge = @merge, do: Map.merge(result, merge), else: result
-        result = if customize = @customize, do: customize.(result, record), else: result
+        merge = @merge
+        customize = @customize
+
+        result = Map.merge(result, merge)
+        result = customize.(result, record)
 
         Jason.Encode.map(result, opts)
       end
     end
 
     :ok
+  end
+
+  def default_customize(result, _record) do
+    result
   end
 
   defp is_sensitive_field(%Ash.Resource.Attribute{sensitive?: true}), do: true

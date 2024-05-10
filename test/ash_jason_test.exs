@@ -3,16 +3,17 @@ defmodule AshJason.Test.Macros do
     quote do
       defmodule unquote(name) do
         use Ash.Resource,
-          validate_api_inclusion?: false,
+          domain: nil,
+          validate_domain_inclusion?: false,
           data_layer: Ash.DataLayer.Ets,
           extensions: [AshJason.Extension]
 
         attributes do
           uuid_primary_key :id, writable?: true
-          attribute :x, :integer
-          attribute :y, :integer, private?: true
-          attribute :z, :integer, sensitive?: true
-          attribute :w, :integer, private?: true, sensitive?: true
+          attribute :x, :integer, public?: true
+          attribute :y, :integer
+          attribute :z, :integer, public?: true, sensitive?: true
+          attribute :w, :integer, sensitive?: true
         end
 
         unquote(block)
@@ -42,10 +43,6 @@ defmodule AshJason.Test do
 
     test "omits not loaded fields" do
       assert encode!(%Default{id: @id, x: %Ash.NotLoaded{}}) == "{\"id\":\"#{@id}\"}"
-    end
-
-    test "omits not selected fields" do
-      assert encode!(%Default{id: @id, x: %Ash.NotSelected{}}) == "{\"id\":\"#{@id}\"}"
     end
 
     test "omits private fields" do
