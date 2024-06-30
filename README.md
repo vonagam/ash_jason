@@ -13,7 +13,7 @@ Add to the deps, get deps (`mix deps.get`), compile them (`mix deps.compile`).
 ```elixir
 def deps do
   [
-    {:ash_jason, "~> 1.0.0"},
+    {:ash_jason, "~> 1.0.1"},
   ]
 end
 ```
@@ -55,7 +55,7 @@ end
 #### pick
 
 Keys to pick from a record and include in json.
-Values of `nil`/`Ash.NotLoaded` are omitted.
+Values of `nil`/`Ash.NotLoaded`/`Ash.ForbiddenField` are omitted.
 
 Can be specified as a fixed explicit list of keys or a map with a configuration of default behaviour.
 

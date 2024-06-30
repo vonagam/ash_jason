@@ -36,6 +36,7 @@ defmodule AshJason.Transformer do
             case Map.get(record, key) do
               nil -> result
               %Ash.NotLoaded{} -> result
+              %Ash.ForbiddenField{} -> result
               value -> Map.put(result, key, value)
             end
           end

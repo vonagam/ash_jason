@@ -45,6 +45,10 @@ defmodule AshJason.Test do
       assert encode!(%Default{id: @id, x: %Ash.NotLoaded{}}) == "{\"id\":\"#{@id}\"}"
     end
 
+    test "omits forbidden fields" do
+      assert encode!(%Default{id: @id, x: %Ash.ForbiddenField{}}) == "{\"id\":\"#{@id}\"}"
+    end
+
     test "omits private fields" do
       assert encode!(%Default{id: @id, y: 1}) == "{\"id\":\"#{@id}\"}"
     end
