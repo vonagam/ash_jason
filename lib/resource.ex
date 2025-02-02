@@ -47,6 +47,10 @@ defmodule AshJason.Resource do
       order: [
         type: {:list, :atom},
         doc: "Ordered list of keys to appear in the encoded output"
+      ],
+      sort: [
+        type: {:fun, [:map, :map], :map},
+        doc: "A function to sort keys. Receives keys and a resource record.",
       ]
     ],
   }

@@ -152,6 +152,8 @@ defmodule AshJason.Test do
   end
 
   describe "`order` option" do
+
+
     defresource WithPickMergeOrder do
       jason do
         pick [:y, :z]
@@ -164,6 +166,31 @@ defmodule AshJason.Test do
       assert encode!(%WithPickMergeOrder{z: 2, y: 1}) == "{\"x\":3,\"y\":1,\"z\":2}"
       assert encode!(%WithPickMergeOrder{y: 1, z: 2}) == "{\"x\":3,\"y\":1,\"z\":2}"
       assert encode!(%WithPickMergeOrder{y: 1}) == "{\"x\":3,\"y\":1}"
+    end
+  end
+
+  describe "`sort` option" do
+    defresource WithSortDescending do
+      jason do
+        pick [:x, :y, :z]
+        sort fn keys, _record ->
+          keys |> Enum.sort(:desc)
+        end
+      end
+    end
+
+    defresource WithSortAscending do
+      jason do
+        pick [:x, :y, :z]
+        sort fn keys, _record ->
+          keys |> Enum.sort()
+        end
+      end
+    end
+
+    test "ordered map with custom sort" do
+      assert encode!(%WithSortAscending{z: 2, x: 3, y: 1}) == "{\"x\":3,\"y\":1,\"z\":2}"
+      assert encode!(%WithSortDescending{x: 3, y: 1, z: 2}) == "{\"z\":2,\"y\":1,\"x\":3}"
     end
   end
 end

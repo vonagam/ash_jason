@@ -22,17 +22,14 @@ defmodule AshJason.Transformer do
 
     merge = Spark.Dsl.Transformer.get_option(dsl, [:jason], :merge, %{})
     customize = Spark.Dsl.Transformer.get_option(dsl, [:jason], :customize, &AshJason.Transformer.default_customize/2)
-    order =
-      case Spark.Dsl.Transformer.get_option(dsl, [:jason], :order, %{}) do
-        keys when is_list(keys) ->
-          keys
-        _ -> []
-      end
+    order = Spark.Dsl.Transformer.get_option(dsl, [:jason], :order, %{})
+    sort = Spark.Dsl.Transformer.get_option(dsl, [:jason], :sort, &AshJason.Transformer.default_sort/2)
 
     defimpl Jason.Encoder, for: dsl.persist.module do
       @pick pick
       @merge merge
       @customize customize
+      @sort sort
       @order order
 
       def encode(record, opts) do
@@ -50,10 +47,15 @@ defmodule AshJason.Transformer do
 
         result = Map.merge(result, @merge)
         result = @customize.(result, record)
-
-        if @order != [] do
+        keys =
+          if (@order == %{}) do
+            Map.keys(result)
+          else
+            @order
+          end
+        if keys != [] do
           values =
-            for key <- @order, Map.has_key?(result, key) do
+            for key <- @sort.(keys, record), Map.has_key?(result, key) do
               {key, Map.get(result, key)}
             end
           Jason.Encode.struct(Jason.OrderedObject.new(values), opts)
@@ -67,4 +69,5 @@ defmodule AshJason.Transformer do
   end
 
   def default_customize(result, _record), do: result
+  def default_sort(keys, _record), do: keys
 end
