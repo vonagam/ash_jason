@@ -44,6 +44,10 @@ defmodule AshJason.Resource do
         type: {:fun, [:map, :map], :map},
         doc: "A function to customize json. Receives a current result and a resource record.",
       ],
+      order: [
+        type: {:list, :atom},
+        doc: "Ordered list of keys to appear in the encoded output"
+      ]
     ],
   }
 
