@@ -5,7 +5,7 @@ defmodule AshJason.Resource do
 
   @jason %Spark.Dsl.Section{
     name: :jason,
-    describe: "Configuration for Jason encoder implementation",
+    describe: "Configuration for Jason encoder implementation.",
     schema: [
       pick: [
         type:
@@ -34,7 +34,7 @@ defmodule AshJason.Resource do
                 ],
               ]},
            ]},
-        doc: "Keys to pick from a record into json. Either an explicit names list or a behaviour configuration map.",
+        doc: "Keys to pick from a record into json. An explicit names list or a behaviour configuration map.",
       ],
       merge: [
         type: :map,
@@ -45,9 +45,9 @@ defmodule AshJason.Resource do
         doc: "A function to customize json. Receives a current result and a resource record.",
       ],
       order: [
-        type: {:list, :atom},
-        doc: "Ordered list of keys to appear in the encoded output"
-      ]
+        type: {:or, [:boolean, {:fun, [{:list, :atom}], {:list, :atom}}, {:list, :atom}]},
+        doc: "An order to apply to keys in json. A boolean, a sort function or a list of keys in a desired order.",
+      ],
     ],
   }
 

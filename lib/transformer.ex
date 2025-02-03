@@ -4,67 +4,90 @@ defmodule AshJason.Transformer do
   use Spark.Dsl.Transformer
 
   def transform(dsl) do
-    pick =
-      case Spark.Dsl.Transformer.get_option(dsl, [:jason], :pick, %{}) do
-        keys when is_list(keys) ->
-          keys
-
-        options when is_map(options) ->
-          fields = dsl |> Ash.Resource.Info.fields()
-          fields = if Map.get(options, :private?), do: fields, else: fields |> Enum.filter(& &1.public?)
-          fields = if Map.get(options, :sensitive?), do: fields, else: fields |> Enum.reject(&Map.get(&1, :sensitive?))
-          keys = fields |> Enum.map(& &1.name)
-          keys = keys ++ Map.get(options, :include, [])
-          keys = keys |> Enum.uniq()
-          keys = keys -- Map.get(options, :exclude, [])
-          keys
-      end
-
-    merge = Spark.Dsl.Transformer.get_option(dsl, [:jason], :merge, %{})
-    customize = Spark.Dsl.Transformer.get_option(dsl, [:jason], :customize, &AshJason.Transformer.default_customize/2)
-    order =
-      case Spark.Dsl.Transformer.get_option(dsl, [:jason], :order, %{}) do
-        keys when is_list(keys) ->
-          keys
-        _ -> []
-      end
-
     defimpl Jason.Encoder, for: dsl.persist.module do
-      @pick pick
-      @merge merge
-      @customize customize
-      @order order
+      @pick AshJason.Transformer.get_pick(dsl)
+      @merge AshJason.Transformer.get_merge(dsl)
+      @customize AshJason.Transformer.get_customize(dsl)
+      @order AshJason.Transformer.get_order(dsl)
 
       def encode(record, opts) do
-        result = %{}
-
-        result =
-          for key <- @pick, reduce: result do result ->
-            case Map.get(record, key) do
-              nil -> result
-              %Ash.NotLoaded{} -> result
-              %Ash.ForbiddenField{} -> result
-              value -> Map.put(result, key, value)
-            end
-          end
-
-        result = Map.merge(result, @merge)
-        result = @customize.(result, record)
-
-        if @order != [] do
-          values =
-            for key <- @order, Map.has_key?(result, key) do
-              {key, Map.get(result, key)}
-            end
-          Jason.Encode.struct(Jason.OrderedObject.new(values), opts)
-        else
-          Jason.Encode.map(result, opts)
-        end
+        record
+        |> AshJason.Transformer.do_pick(@pick)
+        |> AshJason.Transformer.do_merge(@merge)
+        |> AshJason.Transformer.do_customize(@customize, record)
+        |> AshJason.Transformer.do_order(@order)
+        |> Jason.Encode.keyword(opts)
       end
     end
 
     :ok
   end
 
-  def default_customize(result, _record), do: result
+  def get_pick(dsl) do
+    case Spark.Dsl.Transformer.get_option(dsl, [:jason], :pick, %{}) do
+      keys when is_list(keys) ->
+        keys
+
+      options when is_map(options) ->
+        fields = Ash.Resource.Info.fields(dsl)
+        fields = if Map.get(options, :private?), do: fields, else: Enum.filter(fields, & &1.public?)
+        fields = if Map.get(options, :sensitive?), do: fields, else: Enum.reject(fields, &Map.get(&1, :sensitive?))
+        keys = Enum.map(fields, & &1.name)
+        keys = keys ++ Map.get(options, :include, [])
+        keys = Enum.uniq(keys)
+        keys = keys -- Map.get(options, :exclude, [])
+        keys
+    end
+  end
+
+  def get_merge(dsl) do
+    Spark.Dsl.Transformer.get_option(dsl, [:jason], :merge, %{})
+  end
+
+  def get_customize(dsl) do
+    Spark.Dsl.Transformer.get_option(dsl, [:jason], :customize, &AshJason.Transformer.customize_noop/2)
+  end
+
+  def customize_noop(result, _record) do
+    result
+  end
+
+  def get_order(dsl) do
+    Spark.Dsl.Transformer.get_option(dsl, [:jason], :order, false)
+  end
+
+  def do_pick(record, pick) do
+    for key <- pick, reduce: %{} do map ->
+      case Map.get(record, key) do
+        nil -> map
+        %Ash.NotLoaded{} -> map
+        %Ash.ForbiddenField{} -> map
+        value -> Map.put(map, key, value)
+      end
+    end
+  end
+
+  def do_merge(map, merge) do
+    Map.merge(map, merge)
+  end
+
+  def do_customize(map, customize, record) do
+    customize.(map, record)
+  end
+
+  def do_order(map, order) do
+    case order do
+      false ->
+        map |> Map.to_list()
+
+      true ->
+        map |> Enum.sort()
+
+      fun when is_function(fun, 1) ->
+        map |> Map.keys() |> fun.() |> Enum.map(&{&1, map[&1]})
+
+      keys when is_list(keys) ->
+        keys |> Enum.filter(&Map.has_key?(map, &1)) |> Enum.map(&{&1, map[&1]})
+    end
+  end
 end

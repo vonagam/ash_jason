@@ -31,10 +31,11 @@ end
 
 ### Configuration
 
-The process to get data for json happens with three steps: 
+The process to get data for json happens with four steps: 
 - Pick keys from a record.
 - Merge some fixed values.
 - Customize a result.
+- Order keys.
 
 By default only first step happens and it picks all non-private fields (attributes, relationships, aggregates,
 calculations) with loaded non-nil values.
@@ -105,6 +106,25 @@ jason do
   customize fn result, _record ->
     result |> Map.put(:custom_key, "custom_value")
   end
+end
+```
+
+#### order
+
+Can be specified as a boolean, a sort function or a fixed explicit list of keys in a desired order.
+
+If it is a list then it also omits keys not present in that list.
+
+```elixir
+jason do
+  # Order with standart `Enum.sort`
+  order true
+
+  # Order with a custom sort function
+  order fn keys -> Enum.sort(keys, :desc) end
+
+  # Order in accordance with a list
+  order [:a, :b, :c]
 end
 ```
 
