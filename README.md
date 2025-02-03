@@ -117,7 +117,7 @@ If it is a list then it also omits keys not present in that list.
 
 ```elixir
 jason do
-  # Order with standart `Enum.sort`
+  # Order with standard `Enum.sort`
   order true
 
   # Order with a custom sort function
