@@ -150,4 +150,20 @@ defmodule AshJason.Test do
       assert encode!(%WithCustomize{id: @id, x: 1, y: 1}) == "{\"id\":\"#{@id}\",\"c\":1,\"x\":1}"
     end
   end
+
+  describe "`order` option" do
+    defresource WithPickMergeOrder do
+      jason do
+        pick [:y, :z]
+        merge %{x: 3}
+        order [:x, :y, :z]
+      end
+    end
+
+    test "ordered map" do
+      assert encode!(%WithPickMergeOrder{z: 2, y: 1}) == "{\"x\":3,\"y\":1,\"z\":2}"
+      assert encode!(%WithPickMergeOrder{y: 1, z: 2}) == "{\"x\":3,\"y\":1,\"z\":2}"
+      assert encode!(%WithPickMergeOrder{y: 1}) == "{\"x\":3,\"y\":1}"
+    end
+  end
 end
