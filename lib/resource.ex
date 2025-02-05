@@ -48,6 +48,10 @@ defmodule AshJason.Resource do
         type: {:or, [:boolean, {:fun, [{:list, :atom}], {:list, :atom}}, {:list, :atom}]},
         doc: "An order to apply to keys in json. A boolean, a sort function or a list of keys in a desired order.",
       ],
+      rename: [
+        type: {:or, [:keyword_list, :map]},
+        doc: "A mapping for renaming keys in json. Can be a map or a keyword list.",
+      ],
     ],
   }
 

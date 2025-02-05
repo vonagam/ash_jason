@@ -31,9 +31,10 @@ end
 
 ### Configuration
 
-The process to get data for json happens with four steps: 
+The process to get data for json happens with five potential steps: 
 - Pick keys from a record.
 - Merge some fixed values.
+- Rename keys.
 - Customize a result.
 - Order keys.
 
@@ -92,6 +93,16 @@ A map to merge into json.
 ```elixir
 jason do
   merge %{merged_key: "merged_value"}
+end
+```
+
+#### rename
+
+A mapping for renaming keys in json. Can be a map or a keyword list.
+
+```elixir
+jason do
+  rename original_name: "ResultedName"
 end
 ```
 

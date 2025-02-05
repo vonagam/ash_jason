@@ -190,4 +190,26 @@ defmodule AshJason.Test do
                "{\"id\":\"#{@id}\",\"z\":1,\"x\":1,\"k\":1,\"i\":1}"
     end
   end
+
+  describe "`rename` option" do
+    defresource WithRenameMap do
+      jason do
+        rename %{i: :I, j: "✅", k: "@type"}
+      end
+    end
+
+    test "renames keys if a map is provided" do
+      assert encode!(%WithRenameMap{id: @id, i: 1, j: 2, k: 3}) == "{\"id\":\"#{@id}\",\"I\":1,\"@type\":3,\"✅\":2}"
+    end
+
+    defresource WithRenameKeyword do
+      jason do
+        rename i: :I, j: "✅", k: "@type"
+      end
+    end
+
+    test "renames keys if a keyword list is provided" do
+      assert encode!(%WithRenameKeyword{id: @id, i: 1, j: 2, k: 3}) == "{\"id\":\"#{@id}\",\"I\":1,\"@type\":3,\"✅\":2}"
+    end
+  end
 end
