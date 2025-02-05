@@ -11,15 +11,14 @@ defmodule AshJason.Transformer do
       @order AshJason.Transformer.get_order(dsl)
       @rename AshJason.Transformer.get_rename(dsl)
 
-      def encode(record, _opts) do
+      def encode(record, opts) do
         record
         |> AshJason.Transformer.do_pick(@pick)
         |> AshJason.Transformer.do_merge(@merge)
         |> AshJason.Transformer.do_customize(@customize, record)
         |> AshJason.Transformer.do_order(@order)
         |> AshJason.Transformer.do_rename(@rename)
-        #|> Jason.encode(opts) doesn't work for Aja.OrdMap which is a map containing Tuples, however this means opts are ignored
-        |> JSON.encode!()
+        |> AshJason.Transformer.encode(opts)
       end
     end
 
@@ -96,16 +95,12 @@ defmodule AshJason.Transformer do
       keys when is_list(keys) ->
         keys |> Enum.filter(&Map.has_key?(map, &1)) |> Enum.map(&{&1, map[&1]})
     end
-    # order always returns a keyword list, but we want non-atom names
-    #Jason.OrderedObject is an ordered map, but limited to atom names
-    #Aja.OrdMap allows string names
-    |> Aja.OrdMap.new()
   end
 
-  def do_rename(ord_map, rename) do
+  def do_rename(list, rename) do
     case rename do
       renamings when is_map(renamings) ->
-        Aja.OrdMap.new(ord_map,
+        Aja.OrdMap.new(list,
         # couldn't use into, etc here as constrains keys to be atom
           fn {key, value} ->
             if Map.has_key?(renamings, key) do
@@ -114,8 +109,18 @@ defmodule AshJason.Transformer do
               {key, value}
             end
           end)
-      _ ->
-        ord_map
+      nil ->
+        list
+    end
+  end
+
+  def encode(input, opts) do
+    if (Keyword.keyword?(input)) do
+      # this encoder doesn't support non-atom attributes, but does support nested records
+      Jason.Encode.keyword(input, opts)
+    else
+      # this encoder supports Aja.OrdMap which has string or atom keys, but doesn't support nested records
+      JSON.encode!(input)
     end
   end
 end
