@@ -9,14 +9,17 @@ defmodule AshJason.Transformer do
       @merge AshJason.Transformer.get_merge(dsl)
       @customize AshJason.Transformer.get_customize(dsl)
       @order AshJason.Transformer.get_order(dsl)
+      @rename AshJason.Transformer.get_rename(dsl)
 
-      def encode(record, opts) do
+      def encode(record, _opts) do
         record
         |> AshJason.Transformer.do_pick(@pick)
         |> AshJason.Transformer.do_merge(@merge)
         |> AshJason.Transformer.do_customize(@customize, record)
         |> AshJason.Transformer.do_order(@order)
-        |> Jason.Encode.keyword(opts)
+        |> AshJason.Transformer.do_rename(@rename)
+        #|> Jason.encode(opts) doesn't work for Aja.OrdMap which is a map containing Tuples, however this means opts are ignored
+        |> JSON.encode!()
       end
     end
 
@@ -56,6 +59,10 @@ defmodule AshJason.Transformer do
     Spark.Dsl.Transformer.get_option(dsl, [:jason], :order, false)
   end
 
+  def get_rename(dsl) do
+    Spark.Dsl.Transformer.get_option(dsl, [:jason], :rename, nil)
+  end
+
   def do_pick(record, pick) do
     for key <- pick, reduce: %{} do map ->
       case Map.get(record, key) do
@@ -88,6 +95,27 @@ defmodule AshJason.Transformer do
 
       keys when is_list(keys) ->
         keys |> Enum.filter(&Map.has_key?(map, &1)) |> Enum.map(&{&1, map[&1]})
+    end
+    # order always returns a keyword list, but we want non-atom names
+    #Jason.OrderedObject is an ordered map, but limited to atom names
+    #Aja.OrdMap allows string names
+    |> Aja.OrdMap.new()
+  end
+
+  def do_rename(ord_map, rename) do
+    case rename do
+      renamings when is_map(renamings) ->
+        Aja.OrdMap.new(ord_map,
+        # couldn't use into, etc here as constrains keys to be atom
+          fn {key, value} ->
+            if Map.has_key?(renamings, key) do
+              {Map.get(renamings, key), value}
+            else
+              {key, value}
+            end
+          end)
+      _ ->
+        ord_map
     end
   end
 end

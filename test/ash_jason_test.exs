@@ -18,6 +18,8 @@ defmodule AshJason.Test.Macros do
           attribute :x, :integer
           attribute :y, :integer, public?: true, sensitive?: true
           attribute :z, :integer, sensitive?: true
+
+          attribute :type, :string
         end
 
         unquote(block)
@@ -189,5 +191,32 @@ defmodule AshJason.Test do
       assert encode!(%WithOrderList{id: @id, i: 1, j: 1, k: 1, x: 1, y: 1, z: 1}) ==
                "{\"id\":\"#{@id}\",\"z\":1,\"x\":1,\"k\":1,\"i\":1}"
     end
+  end
+
+  describe "`rename` option" do
+    defresource WithRenameAtoms do
+      jason do
+        pick [:x, :y]
+        order [:x, :y]
+        rename %{x: :X, y: :Y}
+      end
+    end
+
+    defresource WithRenameStrings do
+      jason do
+        pick [:x, :y, :type]
+        order [:x, :y, :type]
+        rename %{x: "❌", y: "✅", type: "@type"}
+      end
+    end
+
+    test "renames keys using rename map - atoms" do
+      assert encode!(%WithRenameAtoms{x: 1, y: 2}) == "{\"X\":1,\"Y\":2}"
+    end
+
+    test "renames keys using rename map - strings" do
+      assert encode!(%WithRenameStrings{x: 1, y: 2, type: "emoji"}) == "{\"❌\":1,\"✅\":2,\"@type\":\"emoji\"}"
+    end
+
   end
 end
