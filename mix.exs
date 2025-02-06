@@ -36,7 +36,6 @@ defmodule AshJason.MixProject do
 
   defp deps() do
     [
-      {:aja, ">= 0.7.4"},
       {:ash, "~> 3.0"},
       {:spark, ">= 2.1.21 and < 3.0.0"},
       {:jason, "~> 1.4"},

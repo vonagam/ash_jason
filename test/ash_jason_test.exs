@@ -20,6 +20,8 @@ defmodule AshJason.Test.Macros do
           attribute :z, :integer, sensitive?: true
 
           attribute :type, :string
+
+          attribute :related, :module, public?: true
         end
 
         unquote(block)
@@ -34,6 +36,7 @@ defmodule AshJason.Test do
   import AshJason.Test.Macros
 
   @id "8a94dbb1-9b64-4884-886e-710f87e56487"
+  @id2 "9ed2c1bf-23c2-487c-83d3-10bf6f0b7bbc"
 
   describe "by default" do
     defresource Default do
@@ -65,6 +68,10 @@ defmodule AshJason.Test do
 
     test "omits unknown fields" do
       assert encode!(%Default{id: @id} |> Map.put(:a, 1)) == "{\"id\":\"#{@id}\"}"
+    end
+
+    test "encodes fields with related record" do
+      assert encode!(%Default{id: @id, k: 1, related: %Default{id: @id2, k: 1}}) == "{\"id\":\"#{@id}\",\"k\":1,\"related\":{\"id\":\"#{@id2}\",\"k\":1}}"
     end
   end
 
@@ -196,17 +203,17 @@ defmodule AshJason.Test do
   describe "`rename` option" do
     defresource WithRenameAtoms do
       jason do
-        pick [:x, :y]
-        order [:x, :y]
-        rename %{x: :X, y: :Y}
+        pick [:x, :y, :related]
+        order [:x, :y, :related]
+        rename %{x: :X, y: :Y, related: :previous}
       end
     end
 
     defresource WithRenameStrings do
       jason do
-        pick [:x, :y, :type]
-        order [:x, :y, :type]
-        rename %{x: "❌", y: "✅", type: "@type"}
+        pick [:x, :y, :related, :type]
+        order [:x, :y, :related, :type]
+        rename %{x: "❌", y: "✅", related: :previous, type: "@type"}
       end
     end
 
@@ -214,8 +221,16 @@ defmodule AshJason.Test do
       assert encode!(%WithRenameAtoms{x: 1, y: 2}) == "{\"X\":1,\"Y\":2}"
     end
 
+    test "rename keys using rename map - atoms, related record" do
+      assert encode!(%WithRenameAtoms{x: 1, y: 2, related: %WithRenameAtoms{x: 4, y: 5}}) == "{\"X\":1,\"Y\":2,\"previous\":{\"X\":4,\"Y\":5}}"
+    end
+
     test "renames keys using rename map - strings" do
       assert encode!(%WithRenameStrings{x: 1, y: 2, type: "emoji"}) == "{\"❌\":1,\"✅\":2,\"@type\":\"emoji\"}"
+    end
+
+    test "rename keys using rename map - strings, related record" do
+      assert encode!(%WithRenameStrings{x: 1, y: 2, type: "emoji", related: %WithRenameStrings{x: 4, y: 5, type: "emoji"}}) == "{\"❌\":1,\"✅\":2,\"previous\":{\"❌\":4,\"✅\":5,\"@type\":\"emoji\"},\"@type\":\"emoji\"}"
     end
 
   end

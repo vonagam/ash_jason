@@ -100,15 +100,17 @@ defmodule AshJason.Transformer do
   def do_rename(list, rename) do
     case rename do
       renamings when is_map(renamings) ->
-        Aja.OrdMap.new(list,
-        # couldn't use into, etc here as constrains keys to be atom
-          fn {key, value} ->
-            if Map.has_key?(renamings, key) do
-              {Map.get(renamings, key), value}
-            else
-              {key, value}
-            end
-          end)
+        Jason.OrderedObject.new(
+          list
+          |> Enum.into([],
+            fn {key, value} ->
+              if Map.has_key?(renamings, key) do
+                {Map.get(renamings, key), value}
+              else
+                {key, value}
+              end
+            end)
+        )
       nil ->
         list
     end
@@ -116,11 +118,9 @@ defmodule AshJason.Transformer do
 
   def encode(input, opts) do
     if (Keyword.keyword?(input)) do
-      # this encoder doesn't support non-atom attributes, but does support nested records
       Jason.Encode.keyword(input, opts)
     else
-      # this encoder supports Aja.OrdMap which has string or atom keys, but doesn't support nested records
-      JSON.encode!(input)
+      Jason.Encode.struct(input, opts)
     end
   end
 end
