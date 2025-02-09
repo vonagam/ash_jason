@@ -74,7 +74,7 @@ defmodule AshJason.Test do
     end
 
     test "replaces default pick if a list is provided" do
-      assert encode!(%WithPickList{id: @id, k: 1, x: 1, y: 1, z: 1}) == "{\"y\":1,\"x\":1}"
+      assert encode!(%WithPickList{id: @id, k: 1, x: 1, y: 1, z: 1}) == "{\"x\":1,\"y\":1}"
     end
 
     defresource WithPickPrivate do
@@ -105,7 +105,7 @@ defmodule AshJason.Test do
 
     test "adds all fields if `private?` and `sensitive?` are true" do
       assert encode!(%WithPickAll{id: @id, k: 1, x: 1, y: 1, z: 1}) ==
-               "{\"id\":\"#{@id}\",\"k\":1,\"y\":1,\"x\":1,\"z\":1}"
+               "{\"id\":\"#{@id}\",\"k\":1,\"x\":1,\"y\":1,\"z\":1}"
     end
 
     defresource WithPickInclude do
@@ -145,13 +145,13 @@ defmodule AshJason.Test do
     defresource WithCustomize do
       jason do
         customize fn result, _record ->
-          result |> Map.put(:c, 1)
+          result |> List.keystore(:c, 0, {:c, 1})
         end
       end
     end
 
     test "modifies resulted map" do
-      assert encode!(%WithCustomize{id: @id, k: 1, x: 1}) == "{\"id\":\"#{@id}\",\"c\":1,\"k\":1}"
+      assert encode!(%WithCustomize{id: @id, k: 1, x: 1}) == "{\"id\":\"#{@id}\",\"k\":1,\"c\":1}"
     end
   end
 
@@ -199,7 +199,7 @@ defmodule AshJason.Test do
     end
 
     test "renames keys if a map is provided" do
-      assert encode!(%WithRenameMap{id: @id, i: 1, j: 2, k: 3}) == "{\"id\":\"#{@id}\",\"I\":1,\"@type\":3,\"✅\":2}"
+      assert encode!(%WithRenameMap{id: @id, i: 1, j: 2, k: 3}) == "{\"id\":\"#{@id}\",\"I\":1,\"✅\":2,\"@type\":3}"
     end
 
     defresource WithRenameKeyword do
@@ -209,7 +209,26 @@ defmodule AshJason.Test do
     end
 
     test "renames keys if a keyword list is provided" do
-      assert encode!(%WithRenameKeyword{id: @id, i: 1, j: 2, k: 3}) == "{\"id\":\"#{@id}\",\"I\":1,\"@type\":3,\"✅\":2}"
+      assert encode!(%WithRenameKeyword{id: @id, i: 1, j: 2, k: 3}) == "{\"id\":\"#{@id}\",\"I\":1,\"✅\":2,\"@type\":3}"
+    end
+  end
+
+  describe "all options" do
+    defresource WithAll do
+      jason do
+        pick %{private?: true, sensitive?: true}
+        merge %{"@type" => "survey"}
+        rename j: "✅"
+        customize fn result, _record ->
+          result |> List.keystore(:c, 0, {:c, 1}) |> List.keystore("❌", 0, {"❌", 3})
+        end
+        order [:id, :c, :y, :z, "✅", "❌", "@type"]
+      end
+    end
+
+    test "all options with non-atom keys" do
+      assert encode!(%WithAll{id: @id, j: 2, k: 3, y: 1, z: 4}) ==
+               "{\"id\":\"#{@id}\",\"c\":1,\"y\":1,\"z\":4,\"✅\":2,\"❌\":3,\"@type\":\"survey\"}"
     end
   end
 end
