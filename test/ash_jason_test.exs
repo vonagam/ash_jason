@@ -217,8 +217,8 @@ defmodule AshJason.Test do
     defresource WithAllOptions do
       jason do
         pick %{private?: true, sensitive?: true}
-        merge %{"@type": "survey"}
-        rename j: "✅"
+        merge %{"@type" => "survey"}
+        rename %{:j => "✅"}
         customize fn result, _record ->
           result |> Map.put(:c, 1)|> Map.put("❌", 3)
         end
