@@ -7,9 +7,9 @@ defmodule AshJason.Transformer do
     defimpl Jason.Encoder, for: dsl.persist.module do
       @pick AshJason.Transformer.get_pick(dsl)
       @merge AshJason.Transformer.get_merge(dsl)
+      @rename AshJason.Transformer.get_rename(dsl)
       @customize AshJason.Transformer.get_customize(dsl)
       @order AshJason.Transformer.get_order(dsl)
-      @rename AshJason.Transformer.get_rename(dsl)
 
       def encode(record, opts) do
         record
@@ -99,7 +99,7 @@ defmodule AshJason.Transformer do
 
   def do_rename(map, rename) do
     if rename do
-      map |> Map.new(fn {key, value} -> {Access.get(rename, key, key), value} end)
+      map |> Map.new(fn {key, value} -> {Access.get(rename, key, key), value} end) #this casts string key back to atom!
     else
       map
     end

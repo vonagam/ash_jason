@@ -129,15 +129,37 @@ defmodule AshJason.Test do
     end
   end
 
-  describe "`merge` option" do
-    defresource WithMerge do
+  describe "`rename` option" do
+    defresource WithRenameMap do
       jason do
-        merge %{m: 1}
+        rename %{i: :I, j: "✅", k: "@type"}
+      end
+    end
+
+    test "renames keys if a map is provided" do
+      assert encode!(%WithRenameMap{id: @id, i: 1, j: 2, k: 3}) == "{\"id\":\"#{@id}\",\"I\":1,\"@type\":3,\"✅\":2}"
+    end
+
+    defresource WithRenameKeyword do
+      jason do
+        rename i: :I, j: "✅", k: "@type"
+      end
+    end
+
+    test "renames keys if a keyword list is provided" do
+      assert encode!(%WithRenameKeyword{id: @id, i: 1, j: 2, k: 3}) == "{\"id\":\"#{@id}\",\"I\":1,\"@type\":3,\"✅\":2}"
+    end
+  end
+
+  describe "`merge` option" do
+    defresource WithMergeMap do
+      jason do
+        merge %{m: 1, "@type": "survey"}
       end
     end
 
     test "merges specified map into json" do
-      assert encode!(%WithMerge{id: @id, k: 1, x: 1}) == "{\"id\":\"#{@id}\",\"k\":1,\"m\":1}"
+      assert encode!(%WithMergeMap{id: @id, k: 1, x: 1}) == "{\"id\":\"#{@id}\",\"k\":1,\"m\":1,\"@type\":\"survey\"}"
     end
   end
 
@@ -191,25 +213,22 @@ defmodule AshJason.Test do
     end
   end
 
-  describe "`rename` option" do
-    defresource WithRenameMap do
+  describe "all options" do
+    defresource WithAllOptions do
       jason do
-        rename %{i: :I, j: "✅", k: "@type"}
+        pick %{private?: true, sensitive?: true}
+        merge %{"@type": "survey"}
+        rename j: "✅"
+        customize fn result, _record ->
+          result |> Map.put(:c, 1)|> Map.put("❌", 3)
+        end
+        order [:id, :c, :y, :z, "✅", "❌", "@type"]
       end
     end
 
-    test "renames keys if a map is provided" do
-      assert encode!(%WithRenameMap{id: @id, i: 1, j: 2, k: 3}) == "{\"id\":\"#{@id}\",\"I\":1,\"@type\":3,\"✅\":2}"
-    end
-
-    defresource WithRenameKeyword do
-      jason do
-        rename i: :I, j: "✅", k: "@type"
-      end
-    end
-
-    test "renames keys if a keyword list is provided" do
-      assert encode!(%WithRenameKeyword{id: @id, i: 1, j: 2, k: 3}) == "{\"id\":\"#{@id}\",\"I\":1,\"@type\":3,\"✅\":2}"
+    test "all options with non-atom keys" do
+      assert encode!(%WithAllOptions{id: @id, y: 1, j: 2, k: 3, z: 4}) ==
+               "{\"id\":\"#{@id}\",\"c\":1,\"y\":1,\"z\":4,\"✅\":2,\"❌\":3,\"@type\":\"survey\"}"
     end
   end
 end
