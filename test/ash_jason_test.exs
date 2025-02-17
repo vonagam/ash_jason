@@ -74,7 +74,7 @@ defmodule AshJason.Test do
     end
 
     test "replaces default pick if a list is provided" do
-      assert encode!(%WithPickList{id: @id, k: 1, x: 1, y: 1, z: 1}) == "{\"x\":1,\"y\":1}"
+      assert encode!(%WithPickList{id: @id, k: 1, x: 2, y: 3, z: 4}) == "{\"x\":2,\"y\":3}"
     end
 
     defresource WithPickPrivate do
@@ -84,7 +84,7 @@ defmodule AshJason.Test do
     end
 
     test "adds private fields if `private?` is true" do
-      assert encode!(%WithPickPrivate{id: @id, k: 1, x: 1, y: 1, z: 1}) == "{\"id\":\"#{@id}\",\"k\":1,\"x\":1}"
+      assert encode!(%WithPickPrivate{id: @id, k: 1, x: 2, y: 3, z: 4}) == "{\"id\":\"#{@id}\",\"k\":1,\"x\":2}"
     end
 
     defresource WithPickSensitive do
@@ -94,7 +94,7 @@ defmodule AshJason.Test do
     end
 
     test "adds sensitive fields if `sensitive?` is true" do
-      assert encode!(%WithPickSensitive{id: @id, k: 1, x: 1, y: 1, z: 1}) == "{\"id\":\"#{@id}\",\"k\":1,\"y\":1}"
+      assert encode!(%WithPickSensitive{id: @id, k: 1, x: 2, y: 3, z: 4}) == "{\"id\":\"#{@id}\",\"k\":1,\"y\":3}"
     end
 
     defresource WithPickAll do
@@ -104,8 +104,8 @@ defmodule AshJason.Test do
     end
 
     test "adds all fields if `private?` and `sensitive?` are true" do
-      assert encode!(%WithPickAll{id: @id, k: 1, x: 1, y: 1, z: 1}) ==
-               "{\"id\":\"#{@id}\",\"k\":1,\"x\":1,\"y\":1,\"z\":1}"
+      assert encode!(%WithPickAll{id: @id, k: 1, x: 2, y: 3, z: 4}) ==
+               "{\"id\":\"#{@id}\",\"k\":1,\"x\":2,\"y\":3,\"z\":4}"
     end
 
     defresource WithPickInclude do
@@ -115,7 +115,7 @@ defmodule AshJason.Test do
     end
 
     test "adds fields specified in `include`" do
-      assert encode!(%WithPickInclude{id: @id, k: 1, x: 1, y: 1, z: 1}) == "{\"id\":\"#{@id}\",\"k\":1,\"x\":1}"
+      assert encode!(%WithPickInclude{id: @id, k: 1, x: 2, y: 3, z: 4}) == "{\"id\":\"#{@id}\",\"k\":1,\"x\":2}"
     end
 
     defresource WithPickExclude do
@@ -125,19 +125,19 @@ defmodule AshJason.Test do
     end
 
     test "removes fields specified in `exclude`" do
-      assert encode!(%WithPickExclude{id: @id, k: 1, x: 1, y: 1, z: 1}) == "{\"id\":\"#{@id}\"}"
+      assert encode!(%WithPickExclude{id: @id, k: 1, x: 2, y: 3, z: 4}) == "{\"id\":\"#{@id}\"}"
     end
   end
 
   describe "`merge` option" do
     defresource WithMerge do
       jason do
-        merge %{m: 1}
+        merge %{m: 10}
       end
     end
 
     test "merges specified map into json" do
-      assert encode!(%WithMerge{id: @id, k: 1, x: 1}) == "{\"id\":\"#{@id}\",\"k\":1,\"m\":1}"
+      assert encode!(%WithMerge{id: @id, k: 1, x: 2}) == "{\"id\":\"#{@id}\",\"k\":1,\"m\":10}"
     end
   end
 
@@ -145,13 +145,13 @@ defmodule AshJason.Test do
     defresource WithCustomize do
       jason do
         customize fn result, _record ->
-          result |> List.keystore(:c, 0, {:c, 1})
+          result |> List.keystore(:c, 0, {:c, 10})
         end
       end
     end
 
     test "modifies resulted map" do
-      assert encode!(%WithCustomize{id: @id, k: 1, x: 1}) == "{\"id\":\"#{@id}\",\"k\":1,\"c\":1}"
+      assert encode!(%WithCustomize{id: @id, k: 1, x: 2}) == "{\"id\":\"#{@id}\",\"k\":1,\"c\":10}"
     end
   end
 
@@ -211,6 +211,16 @@ defmodule AshJason.Test do
     test "renames keys if a keyword list is provided" do
       assert encode!(%WithRenameKeyword{id: @id, i: 1, j: 2, k: 3}) == "{\"id\":\"#{@id}\",\"I\":1,\"✅\":2,\"@type\":3}"
     end
+
+    defresource WithRenameFun do
+      jason do
+        rename &String.capitalize(to_string(&1))
+      end
+    end
+
+    test "renames keys if a function" do
+      assert encode!(%WithRenameFun{id: @id, i: 1, j: 2, k: 3}) == "{\"Id\":\"#{@id}\",\"I\":1,\"J\":2,\"K\":3}"
+    end
   end
 
   describe "all options" do
@@ -219,16 +229,14 @@ defmodule AshJason.Test do
         pick %{private?: true, sensitive?: true}
         merge %{"@type" => "survey"}
         rename j: "✅"
-        customize fn result, _record ->
-          result |> List.keystore(:c, 0, {:c, 1}) |> List.keystore("❌", 0, {"❌", 3})
-        end
-        order [:id, :c, :y, :z, "✅", "❌", "@type"]
+        customize fn result, _record -> List.keystore(result, "❌", 0, {"❌", 10}) end
+        order [:id, :z, :y, "✅", "❌", "@type"]
       end
     end
 
     test "all options with non-atom keys" do
-      assert encode!(%WithAll{id: @id, j: 2, k: 3, y: 1, z: 4}) ==
-               "{\"id\":\"#{@id}\",\"c\":1,\"y\":1,\"z\":4,\"✅\":2,\"❌\":3,\"@type\":\"survey\"}"
+      assert encode!(%WithAll{id: @id, j: 1, k: 2, y: 3, z: 4}) ==
+               "{\"id\":\"#{@id}\",\"z\":4,\"y\":3,\"✅\":1,\"❌\":10,\"@type\":\"survey\"}"
     end
   end
 end

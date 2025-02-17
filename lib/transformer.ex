@@ -6,7 +6,7 @@ defmodule AshJason.Transformer do
   defmodule Step do
     @moduledoc false
 
-    defstruct [:type, :value]
+    defstruct [:type, :input]
   end
 
   def transform(dsl) do
@@ -58,7 +58,7 @@ defmodule AshJason.Transformer do
 
   def make_steps(dsl) do
     for step <- Spark.Dsl.Transformer.get_entities(dsl, [:jason]),
-        step_expression = make_step(step.type, step.value) do
+        step_expression = make_step(step.type, step.input) do
       step_expression
     end
   end
@@ -86,6 +86,15 @@ defmodule AshJason.Transformer do
       result =
         for {key, value} <- result do
           {Map.get(renames, key, key), value}
+        end
+    end
+  end
+
+  def make_step(:rename, fun) when is_function(fun, 1) do
+    quote bind_quoted: [fun: Macro.escape(fun)] do
+      result =
+        for {key, value} <- result do
+          {fun.(key), value}
         end
     end
   end

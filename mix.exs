@@ -15,7 +15,7 @@ defmodule AshJason.MixProject do
       consolidate_protocols: Mix.env() != :test,
       package: package(),
       deps: deps(),
-      docs: docs(),
+      docs: &docs/0,
       aliases: aliases(),
     ]
   end
@@ -36,11 +36,13 @@ defmodule AshJason.MixProject do
 
   defp deps() do
     [
+      {:jason, "~> 1.4"},
       {:ash, "~> 3.0"},
       {:spark, ">= 2.1.21 and < 3.0.0"},
-      {:jason, "~> 1.4"},
+      {:igniter, "~> 0.5", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.32", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:sourceror, "~> 1.7", only: [:dev, :test], runtime: false},
       {:freedom_formatter, "~> 2.1", only: [:dev, :test], runtime: false},
     ]
   end
@@ -54,16 +56,18 @@ defmodule AshJason.MixProject do
       extras: [
         "README.md": [title: "Guide"],
         "LICENSE.md": [title: "License"],
-        "documentation/dsls/DSL:-AshJason.Resource.md": [title: "DSL: AshJason.Resource"],
+        "documentation/dsls/DSL-AshJason.Resource.md": [
+          title: "DSL: AshJason.Resource",
+          search_data: Spark.Docs.search_data_for(AshJason.Resource),
+        ],
       ],
     ]
   end
 
   defp aliases() do
     [
-      docs: ["spark.cheat_sheets", "docs", "spark.replace_doc_links", "spark.cheat_sheets_in_search"],
+      docs: ["spark.cheat_sheets", "docs", "spark.replace_doc_links"],
       "spark.cheat_sheets": "spark.cheat_sheets --extensions AshJason.Resource",
-      "spark.cheat_sheets_in_search": "spark.cheat_sheets_in_search --extensions AshJason.Resource",
       "spark.formatter": ["spark.formatter --extensions AshJason.Resource", "format .formatter.exs"],
     ]
   end
