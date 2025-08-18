@@ -1,13 +1,7 @@
-defmodule AshJason.Transformer do
+defmodule AshJason.TypedStructTransformer do
   @moduledoc false
 
   use Spark.Dsl.Transformer
-
-  defmodule Step do
-    @moduledoc false
-
-    defstruct [:type, :input]
-  end
 
   def transform(dsl) do
     dsl =
@@ -35,12 +29,8 @@ defmodule AshJason.Transformer do
           keys
 
         options when is_map(options) ->
-          fields = Ash.Resource.Info.fields(dsl)
-          fields = if Map.get(options, :private?), do: fields, else: Enum.filter(fields, & &1.public?)
-          fields = if Map.get(options, :sensitive?), do: fields, else: Enum.reject(fields, &Map.get(&1, :sensitive?))
-          keys = Enum.map(fields, & &1.name)
-          keys = keys ++ Map.get(options, :include, [])
-          keys = Enum.uniq(keys)
+          # requires ash PR https://github.com/ash-project/ash/pull/2277, expected ash 3.5.35
+          keys = Ash.TypedStruct.Info.field_names(dsl)
           keys = keys -- Map.get(options, :exclude, [])
           keys
       end
@@ -52,7 +42,7 @@ defmodule AshJason.Transformer do
             not is_struct(value, Ash.NotLoaded),
             not is_struct(value, Ash.ForbiddenField) do
           {key, value}
-        end || []
+        end
     end
   end
 
