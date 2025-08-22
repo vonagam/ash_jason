@@ -4,7 +4,7 @@
 [![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen)](https://hexdocs.pm/ash_jason/)
 [![License](https://img.shields.io/hexpm/l/ash_jason)](https://github.com/vonagam/ash_jason/blob/master/LICENSE.md)
 
-Ash resource extension for implementing `Jason.Encoder` protocol.
+Ash resource and typed struct extensions for implementing `Jason.Encoder` protocol.
 
 ## Installation
 
@@ -13,12 +13,12 @@ Add to the deps:
 ```elixir
 def deps do
   [
-    {:ash_jason, "~> 2.0.0"},
+    {:ash_jason, "~> 2.1.0"},
   ]
 end
 ```
 
-## Usage
+## Usage for Resources
 
 Add `AshJason.Resource` to `extensions` list within `use Ash.Resource` options:
 
@@ -26,6 +26,17 @@ Add `AshJason.Resource` to `extensions` list within `use Ash.Resource` options:
 defmodule Example.Resource do
   use Ash.Resource,
     extensions: [AshJason.Resource]
+end
+```
+
+## Usage for Typed Structs
+
+Add `AshJason.TypedStruct` to `extensions` list within `use Ash.TypedStruct` options:
+
+```elixir
+defmodule Example.TypedStruct do
+  use Ash.TypedStruct,
+    extensions: [AshJason.TypedStruct]
 end
 ```
 
@@ -63,14 +74,17 @@ A result object on which those steps operate is a key-value list - not map, not 
 #### `pick`
 
 Keys to pick from a record and include in the result.
-Accepts a fixed explicit list of keys or a map with a configuration of default behaviour.
+
+Pick accepts a fixed explicit list of keys or a map with a configuration of default behaviour.
+
+Omiting pick entirely will include all public/non-sensitive resource attributes or all typed struct fields, in their declared order.
 
 Values of `nil`/`Ash.NotLoaded`/`Ash.ForbiddenField` are omitted.
 
 Map can have such options as:
-- `private?` - Whenever to pick private fields.
-- `sensitive?` - Whenever to pick sensitive fields.
-- `include` - Keys to pick. In addition to fields.
+- `private?` - Whenever to pick private fields (Resources only)
+- `sensitive?` - Whenever to pick sensitive fields (Resources only)
+- `include` - Keys to pick. In addition to fields (Resources only)
 - `exclude` - Keys not to pick.
 
 ```elixir
@@ -78,16 +92,19 @@ jason do
   # Pick only those listed keys
   pick [:only_some_field]
 
-  # Pick non-sensitive fields
+  # Pick all fields excluding some specific keys
+   pick %{exclude: [:irrelevant_field]}
+
+  # Pick non-sensitive fields (Resource only)
   pick %{private?: true}
 
-  # Pick non-private fields
+  # Pick non-private fields (Resource only)
   pick %{sensitive?: true}
 
-  # Pick all fields
+  # Pick all fields (Resource only)
   pick %{private?: true, sensitive?: true}
 
-  # Pick usual but include and exclude some specific keys
+  # Pick usual but include and exclude some specific keys (Resource only)
   pick %{include: [:ok_private_field], exclude: [:irrelevant_public_field]}
 end
 ```
@@ -162,6 +179,9 @@ jason do
   end
 end
 ```
+## Notes
+
+Ash Jason requires ash ~> 3.5.34 since it requires [Ash.TypeStruct.Info](https://hexdocs.pm/ash/Ash.TypedStruct.Info.html)
 
 ## Links
 
