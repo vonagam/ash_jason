@@ -22,6 +22,8 @@ defmodule AshJason.TypedStructTransformer do
     {:ok, dsl}
   end
 
+  @dialyzer {:nowarn_function, make_pick: 1}
+  @spec make_pick(map()) :: {:__block__, [], [{:=, list(), [...]}, ...]}
   def make_pick(dsl) do
     keys =
       case Spark.Dsl.Transformer.get_option(dsl, [:jason], :pick, %{}) do
@@ -29,7 +31,6 @@ defmodule AshJason.TypedStructTransformer do
           keys
 
         options when is_map(options) ->
-          # requires ash PR https://github.com/ash-project/ash/pull/2277, expected ash 3.5.35
           keys = Ash.TypedStruct.Info.field_names(dsl)
           keys = keys -- Map.get(options, :exclude, [])
           keys

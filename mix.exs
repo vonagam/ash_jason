@@ -46,7 +46,7 @@ defmodule AshJason.MixProject do
   defp deps() do
     [
       {:jason, "~> 1.4"},
-      {:ash, ash_version("~> 3.5.35")},
+      {:ash, ash_version("~> 3.5.36")},
       {:spark, ">= 2.1.21 and < 3.0.0"},
       {:igniter, "~> 0.5", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.32", only: :dev, runtime: false},
