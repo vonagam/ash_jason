@@ -18,6 +18,8 @@ defmodule AshJason.Test.Macros do
           attribute :x, :integer
           attribute :y, :integer, public?: true, sensitive?: true
           attribute :z, :integer, sensitive?: true
+
+          attribute :b, :boolean, public?: true
         end
 
         unquote(block)
@@ -38,37 +40,44 @@ defmodule AshJason.Test do
     end
 
     test "encodes fields" do
-      assert encode!(%Default{id: @id, k: 1}) == "{\"id\":\"#{@id}\",\"k\":1}"
+      assert encode!(%Default{id: @id, k: 1}) == "{\"id\":\"#{@id}\",\"i\":null,\"j\":null,\"k\":1,\"b\":null}"
     end
 
-    test "omits nil fields" do
-      assert encode!(%Default{id: @id, k: nil}) == "{\"id\":\"#{@id}\"}"
+    test "encodes boolean fields" do
+      assert encode!(%Default{id: @id, b: false}) == "{\"id\":\"#{@id}\",\"i\":null,\"j\":null,\"k\":null,\"b\":false}"
+    end
+
+    test "does not omit nil fields" do
+      assert encode!(%Default{id: @id, k: nil}) == "{\"id\":\"#{@id}\",\"i\":null,\"j\":null,\"k\":null,\"b\":null}"
     end
 
     test "omits not loaded fields" do
-      assert encode!(%Default{id: @id, k: %Ash.NotLoaded{}}) == "{\"id\":\"#{@id}\"}"
+      assert encode!(%Default{id: @id, k: %Ash.NotLoaded{}}) == "{\"id\":\"#{@id}\",\"i\":null,\"j\":null,\"b\":null}"
     end
 
     test "omits forbidden fields" do
-      assert encode!(%Default{id: @id, k: %Ash.ForbiddenField{}}) == "{\"id\":\"#{@id}\"}"
+      assert encode!(%Default{id: @id, k: %Ash.ForbiddenField{}}) ==
+               "{\"id\":\"#{@id}\",\"i\":null,\"j\":null,\"b\":null}"
     end
 
     test "omits private fields" do
-      assert encode!(%Default{id: @id, x: 1}) == "{\"id\":\"#{@id}\"}"
+      assert encode!(%Default{id: @id, x: 1}) == "{\"id\":\"#{@id}\",\"i\":null,\"j\":null,\"k\":null,\"b\":null}"
     end
 
     test "omits sensitive fields" do
-      assert encode!(%Default{id: @id, y: 1}) == "{\"id\":\"#{@id}\"}"
+      assert encode!(%Default{id: @id, y: 1}) == "{\"id\":\"#{@id}\",\"i\":null,\"j\":null,\"k\":null,\"b\":null}"
     end
 
     test "omits unknown fields" do
-      assert encode!(%Default{id: @id} |> Map.put(:a, 1)) == "{\"id\":\"#{@id}\"}"
+      assert encode!(%Default{id: @id} |> Map.put(:a, 1)) ==
+               "{\"id\":\"#{@id}\",\"i\":null,\"j\":null,\"k\":null,\"b\":null}"
     end
   end
 
   describe "`pick` option" do
     defresource WithPickList do
       jason do
+        compact true
         pick [:x, :y]
       end
     end
@@ -79,6 +88,7 @@ defmodule AshJason.Test do
 
     defresource WithPickPrivate do
       jason do
+        compact true
         pick %{private?: true}
       end
     end
@@ -89,6 +99,7 @@ defmodule AshJason.Test do
 
     defresource WithPickSensitive do
       jason do
+        compact true
         pick %{sensitive?: true}
       end
     end
@@ -99,6 +110,7 @@ defmodule AshJason.Test do
 
     defresource WithPickAll do
       jason do
+        compact true
         pick %{private?: true, sensitive?: true}
       end
     end
@@ -110,6 +122,7 @@ defmodule AshJason.Test do
 
     defresource WithPickInclude do
       jason do
+        compact true
         pick %{include: [:x]}
       end
     end
@@ -120,6 +133,7 @@ defmodule AshJason.Test do
 
     defresource WithPickExclude do
       jason do
+        compact true
         pick %{exclude: [:k]}
       end
     end
@@ -129,9 +143,72 @@ defmodule AshJason.Test do
     end
   end
 
+  describe "`compact` option" do
+    defresource WithCompactTrue do
+      jason do
+        compact true
+      end
+    end
+
+    test "removes nil values" do
+      assert encode!(%WithCompactTrue{id: @id, k: nil, x: nil}) == "{\"id\":\"#{@id}\"}"
+    end
+
+    defresource WithCompactValues do
+      jason do
+        compact %{values: [1]}
+      end
+    end
+
+    test "removes only specified values" do
+      assert encode!(%WithCompactValues{id: @id, i: 1, j: 2}) == "{\"id\":\"#{@id}\",\"j\":2,\"k\":null,\"b\":null}"
+    end
+
+    defresource WithCompactOnlyFields do
+      jason do
+        compact %{fields: {:only, [:i, :j]}}
+      end
+    end
+
+    test "checks only specified fields when `only` tuple is used" do
+      assert encode!(%WithCompactOnlyFields{id: @id}) == "{\"id\":\"#{@id}\",\"k\":null,\"b\":null}"
+    end
+
+    defresource WithCompactExceptFields do
+      jason do
+        compact %{fields: {:except, [:j]}}
+      end
+    end
+
+    test "checks all except specified fields when `except` tuple is used" do
+      assert encode!(%WithCompactExceptFields{id: @id}) == "{\"id\":\"#{@id}\",\"j\":null}"
+    end
+
+    defresource WithCompactExceptShortFields do
+      jason do
+        compact {:except, [:j]}
+      end
+    end
+
+    test "checks all except specified fields when `except` tuple is used in short form" do
+      assert encode!(%WithCompactExceptShortFields{id: @id}) == "{\"id\":\"#{@id}\",\"j\":null}"
+    end
+
+    defresource WithCompactValuesFields do
+      jason do
+        compact %{values: [1, 2], fields: {:except, [:j]}}
+      end
+    end
+
+    test "works with both `values` and `fields` options provided" do
+      assert encode!(%WithCompactValuesFields{id: @id, i: 1, j: 1, k: 1}) == "{\"id\":\"#{@id}\",\"j\":1,\"b\":null}"
+    end
+  end
+
   describe "`merge` option" do
     defresource WithMerge do
       jason do
+        compact true
         merge %{m: 10}
       end
     end
@@ -144,6 +221,8 @@ defmodule AshJason.Test do
   describe "`customize` option" do
     defresource WithCustomize do
       jason do
+        compact true
+
         customize fn result, _record ->
           result |> List.keystore(:c, 0, {:c, 10})
         end
@@ -158,6 +237,7 @@ defmodule AshJason.Test do
   describe "`order` option" do
     defresource WithOrderTrue do
       jason do
+        compact true
         order true
       end
     end
@@ -168,6 +248,8 @@ defmodule AshJason.Test do
 
     defresource WithOrderFun do
       jason do
+        compact true
+
         order fn keys ->
           Enum.sort(keys, :desc)
         end
@@ -180,6 +262,7 @@ defmodule AshJason.Test do
 
     defresource WithOrderList do
       jason do
+        compact true
         pick %{private?: true, sensitive?: true}
         order [:id, :z, :x, :k, :i]
       end
@@ -194,6 +277,7 @@ defmodule AshJason.Test do
   describe "`rename` option" do
     defresource WithRenameMap do
       jason do
+        compact true
         rename %{i: :I, j: "✅", k: "@type"}
       end
     end
@@ -204,6 +288,7 @@ defmodule AshJason.Test do
 
     defresource WithRenameKeyword do
       jason do
+        compact true
         rename i: :I, j: "✅", k: "@type"
       end
     end
@@ -214,6 +299,7 @@ defmodule AshJason.Test do
 
     defresource WithRenameFun do
       jason do
+        compact true
         rename &String.capitalize(to_string(&1))
       end
     end
@@ -226,6 +312,7 @@ defmodule AshJason.Test do
   describe "all options" do
     defresource WithAll do
       jason do
+        compact true
         pick %{private?: true, sensitive?: true}
         merge %{"@type" => "survey"}
         rename j: "✅"

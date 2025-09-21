@@ -6,6 +6,48 @@ defmodule AshJason.Resource do
   @tuples_list {:list, {:tuple, [:any, :any]}}
   @tuples_map {:map, :any, :any}
 
+  @compact %Spark.Dsl.Entity{
+    name: :compact,
+    describe: """
+      A step to omit fields with unwanted values (nil, for example).
+    """,
+    target: AshJason.Transformer.Step,
+    auto_set_fields: [type: :compact],
+    args: [:config],
+    schema: [
+      config: [
+        doc: """
+          Accepts `true` to remove any field with nil, a tagged `only`/`except` tuple to specify targeted fields or a map to configure which value or fields to work on.
+        """,
+        type: {
+          :or,
+          [
+            :boolean,
+            {:tagged_tuple, :only, {:list, :atom}},
+            {:tagged_tuple, :except, {:list, :atom}},
+            {:map,
+             [
+               values: [
+                 doc: """
+                   List of values that are unwanted in the result. By default removes only nil.
+                 """,
+                 type: {:list, :any},
+               ],
+               fields: [
+                 doc: """
+                   Tagged `only`/`except` tuple to specify which fields to apply to. By default applies to all.
+                 """,
+                 type: {:or, [{:tagged_tuple, :only, {:list, :atom}}, {:tagged_tuple, :except, {:list, :atom}}]},
+               ],
+             ]},
+          ]
+        },
+        as: :input,
+        required: true,
+      ],
+    ],
+  }
+
   @merge %Spark.Dsl.Entity{
     name: :merge,
     describe: """
@@ -133,6 +175,7 @@ defmodule AshJason.Resource do
       ],
     ],
     entities: [
+      @compact,
       @merge,
       @rename,
       @order,

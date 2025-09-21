@@ -33,13 +33,14 @@ end
 
 Producing json object can have multiple steps:
 - Picking keys from a record.
+- Removing fields with unnecessary values (like nil).
 - Merging some values.
 - Renaming keys.
 - Ordering keys.
 - Customizing a result with a function.
 
 By default only the picking step happens and it takes all non-private non-sensitive fields
-(attributes, relationships, aggregates, calculations) with loaded non-nil values from a record.
+(attributes, relationships, aggregates, calculations) with loaded values from a record.
 
 For adding and configuring those steps there is an optional `jason` dsl section:
 
@@ -89,6 +90,24 @@ jason do
 
   # Pick usual but include and exclude some specific keys
   pick %{include: [:ok_private_field], exclude: [:irrelevant_public_field]}
+end
+```
+
+#### `compact`
+
+A step to remove unneeded values from a result.
+Accepts a boolen, a tagged `only`/`except` tuple or a config map with `values`/`fields` keys.
+
+```elixir
+jason do
+  # Remove all fields with nil value
+  compact true
+
+  # Remove fields with nil value except for specified exceptions
+  compact {:except, [:keep_nil]}
+
+  # Remove fields with specific unwanted values
+  compact %{values: [nil, false, ""]}
 end
 ```
 
