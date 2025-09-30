@@ -1,7 +1,5 @@
-defmodule AshJason.Transformer do
+defmodule AshJason.TransformerHelpers do
   @moduledoc false
-
-  use Spark.Dsl.Transformer
 
   defmodule Step do
     @moduledoc false
@@ -9,8 +7,7 @@ defmodule AshJason.Transformer do
     defstruct [:type, :input]
   end
 
-  @impl true
-  def transform(dsl) do
+  def transform(dsl, get_fields) do
     dsl =
       Spark.Dsl.Transformer.eval(
         dsl,
@@ -18,7 +15,7 @@ defmodule AshJason.Transformer do
         quote do
           defimpl Jason.Encoder do
             def encode(record, opts) do
-              unquote(make_pick(dsl))
+              unquote(make_pick(dsl, get_fields))
               unquote_splicing(make_steps(dsl))
               Jason.Encode.keyword(result, opts)
             end
@@ -29,16 +26,14 @@ defmodule AshJason.Transformer do
     {:ok, dsl}
   end
 
-  defp make_pick(dsl) do
+  defp make_pick(dsl, get_fields) do
     keys =
       case Spark.Dsl.Transformer.get_option(dsl, [:jason], :pick, %{}) do
         keys when is_list(keys) ->
           keys
 
         options when is_map(options) ->
-          fields = Ash.Resource.Info.fields(dsl)
-          fields = if Map.get(options, :private?), do: fields, else: Enum.filter(fields, & &1.public?)
-          fields = if Map.get(options, :sensitive?), do: fields, else: Enum.reject(fields, &Map.get(&1, :sensitive?))
+          fields = get_fields.(dsl, options)
           keys = Enum.map(fields, & &1.name)
           keys = keys ++ Map.get(options, :include, [])
           keys = Enum.uniq(keys)

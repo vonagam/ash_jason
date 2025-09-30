@@ -3,7 +3,7 @@ defmodule AshJason.MixProject do
 
   @name :ash_jason
   @version "2.0.0"
-  @description "Ash resource extension for implementing Jason protocol"
+  @description "Ash extension for implementing Jason protocol"
   @github_url "https://github.com/vonagam/ash_jason"
 
   def project() do
@@ -37,7 +37,7 @@ defmodule AshJason.MixProject do
   defp deps() do
     [
       {:jason, "~> 1.4"},
-      {:ash, "~> 3.0"},
+      {:ash, "~> 3.5.36"},
       {:spark, ">= 2.1.21 and < 3.0.0"},
       {:igniter, "~> 0.5", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.32", only: :dev, runtime: false},
@@ -60,6 +60,10 @@ defmodule AshJason.MixProject do
           title: "DSL: AshJason.Resource",
           search_data: Spark.Docs.search_data_for(AshJason.Resource),
         ],
+        "documentation/dsls/DSL-AshJason.TypedStruct.md": [
+          title: "DSL: AshJason.TypedStruct",
+          search_data: Spark.Docs.search_data_for(AshJason.TypedStruct),
+        ],
       ],
     ]
   end
@@ -67,8 +71,11 @@ defmodule AshJason.MixProject do
   defp aliases() do
     [
       docs: ["spark.cheat_sheets", "docs", "spark.replace_doc_links"],
-      "spark.cheat_sheets": "spark.cheat_sheets --extensions AshJason.Resource",
-      "spark.formatter": ["spark.formatter --extensions AshJason.Resource", "format .formatter.exs"],
+      "spark.cheat_sheets": "spark.cheat_sheets --extensions AshJason.Resource,AshJason.TypedStruct",
+      "spark.formatter": [
+        "spark.formatter --extensions AshJason.Resource,AshJason.TypedStruct",
+        "format .formatter.exs",
+      ],
     ]
   end
 end

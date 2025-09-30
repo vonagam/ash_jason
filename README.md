@@ -182,6 +182,19 @@ jason do
 end
 ```
 
+### Typed structs
+
+To use with `Ash.TypedStruct` add `AshJason.TypedStruct` extension.
+
+All `jason` options and steps are the same except there are no `private?` or `sensetive?` filters in `pick` map form (since typed struct fields do not have those options).
+
+```elixir
+defmodule Example.TypedStruct do
+  use Ash.TypedStruct,
+    extensions: [AshJason.TypedStruct]
+end
+```
+
 ## Links
 
 [`Jason` docs](https://hexdocs.pm/jason).

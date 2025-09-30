@@ -26,6 +26,25 @@ defmodule AshJason.Test.Macros do
       end
     end
   end
+
+  defmacro deftypedstruct(name, block) do
+    quote do
+      defmodule unquote(name) do
+        use Ash.TypedStruct,
+          extensions: [AshJason.TypedStruct]
+
+        typed_struct do
+          field :id, :uuid
+
+          field :i, :integer
+          field :j, :integer
+          field :k, :integer
+        end
+
+        unquote(block)
+      end
+    end
+  end
 end
 
 defmodule AshJason.Test do
@@ -324,6 +343,24 @@ defmodule AshJason.Test do
     test "all options with non-atom keys" do
       assert encode!(%WithAll{id: @id, j: 1, k: 2, y: 3, z: 4}) ==
                "{\"id\":\"#{@id}\",\"z\":4,\"y\":3,\"✅\":1,\"❌\":10,\"@type\":\"survey\"}"
+    end
+  end
+
+  describe "type struct extension" do
+    deftypedstruct StructWithAll do
+      jason do
+        compact true
+        pick %{}
+        merge %{"@type" => "survey"}
+        rename j: "✅"
+        customize fn result, _record -> List.keystore(result, "❌", 0, {"❌", 10}) end
+        order [:id, :i, "✅", "❌", :k, "@type"]
+      end
+    end
+
+    test "works" do
+      assert encode!(%StructWithAll{id: @id, j: 1, k: 2}) ==
+               "{\"id\":\"#{@id}\",\"✅\":1,\"❌\":10,\"k\":2,\"@type\":\"survey\"}"
     end
   end
 end
