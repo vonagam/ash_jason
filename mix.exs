@@ -2,7 +2,7 @@ defmodule AshJason.MixProject do
   use Mix.Project
 
   @name :ash_jason
-  @version "2.0.0"
+  @version "3.0.0"
   @description "Ash extension for implementing Jason protocol"
   @github_url "https://github.com/vonagam/ash_jason"
 

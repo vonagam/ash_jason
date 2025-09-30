@@ -13,7 +13,7 @@ Add to the deps:
 ```elixir
 def deps do
   [
-    {:ash_jason, "~> 2.0.0"},
+    {:ash_jason, "~> 3.0.0"},
   ]
 end
 ```
