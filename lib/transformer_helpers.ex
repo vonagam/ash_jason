@@ -4,7 +4,7 @@ defmodule AshJason.TransformerHelpers do
   defmodule Step do
     @moduledoc false
 
-    defstruct [:type, :input]
+    defstruct [:type, :input, __spark_metadata__: nil]
   end
 
   def transform(dsl, get_fields) do
