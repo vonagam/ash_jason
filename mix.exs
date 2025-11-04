@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 ash_jason contributors <https://github.com/vonagam/ash_jason/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+
 defmodule AshJason.MixProject do
   use Mix.Project
 
@@ -44,6 +48,7 @@ defmodule AshJason.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:sourceror, "~> 1.7", only: [:dev, :test], runtime: false},
       {:freedom_formatter, "~> 2.1", only: [:dev, :test], runtime: false},
+      {:ex_check, "~> 0.16.0"},
     ]
   end
 

@@ -1,8 +1,15 @@
+<!--
+SPDX-FileCopyrightText: 2023 ash_jason contributors <https://github.com/vonagam/ash_jason/graphs/contributors>
+
+SPDX-License-Identifier: MIT
+-->
+
 # AshJason
 
 [![Module Version](https://img.shields.io/hexpm/v/ash_jason)](https://hex.pm/packages/ash_jason)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen)](https://hexdocs.pm/ash_jason/)
-[![License](https://img.shields.io/hexpm/l/ash_jason)](https://github.com/vonagam/ash_jason/blob/master/LICENSE.md)
+[![License: MIT](https://img.shields.io/hexpm/l/ash_jason)](https://github.com/vonagam/ash_jason/blob/master/LICENSE.md)
+[![REUSE compliance](https://api.reuse.software/badge/github.com/vonagam/ash_jason)](https://api.reuse.software/info/github.com/vonagam/ash_jason)
 
 Ash resource extension for implementing `Jason.Encoder` protocol.
 

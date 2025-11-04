@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 ash_jason contributors <https://github.com/vonagam/ash_jason/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+
 spark_locals_without_parens = [
   pick: 1,
   compact: 1,

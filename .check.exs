@@ -2,4 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
-ExUnit.start()
+[
+  tools: [
+    {:reuse, command: ["pipx", "run", "reuse", "lint", "-q"]},
+  ]
+]
