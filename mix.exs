@@ -48,7 +48,7 @@ defmodule AshJason.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:sourceror, "~> 1.7", only: [:dev, :test], runtime: false},
       {:freedom_formatter, "~> 2.1", only: [:dev, :test], runtime: false},
-      {:ex_check, "~> 0.16.0"},
+      {:ex_check, "~> 0.16.0", only: [:dev, :test], runtime: false},
     ]
   end
 
